@@ -70,7 +70,7 @@ int main()
 		{
 			if (GetAsyncKeyState(VK_OEM_3))
 			{
-				PlaySound(L"c:/windows/media/Windows Shutdown.wav", NULL, SND_SYNC);
+				PlaySound(TEXT("c:/windows/media/Windows Shutdown.wav"), NULL, SND_SYNC);
 				break;
 			}
 			else if (GetAsyncKeyState('1'))
@@ -83,12 +83,12 @@ int main()
 
 					if (disableLock)
 					{
-						PlaySound(L"c:/windows/media/Windows Hardware Remove.wav", NULL, SND_ASYNC);
+						PlaySound(TEXT("c:/windows/media/Windows Hardware Remove.wav"), NULL, SND_ASYNC);
 						disableLock = 0;
 					}
 					else
 					{
-						PlaySound(L"c:/windows/media/Windows Hardware Insert.wav", NULL, SND_ASYNC);
+						PlaySound(TEXT("c:/windows/media/Windows Hardware Insert.wav"), NULL, SND_ASYNC);
 						disableLock = 1;
 					}
 				}
