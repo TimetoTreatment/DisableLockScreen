@@ -1,6 +1,5 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
-#include <conio.h>
 #include <time.h>
 #include <Windows.h>
 
@@ -31,15 +30,15 @@ typedef enum Color
 } Color;
 
 
-void draw(HANDLE handleConsole, const char* str, int row, int col, Color color)
+void draw(HANDLE handleOutput, const char* str, int row, int col, Color color)
 {
 	static int colorSet[5] = { COLOR_RED, COLOR_LIGHTGREEN, COLOR_LIGHTBLUE, COLOR_LIGHTMAGENTA, COLOR_YELLOW };
 	int colorValue = (color == COLOR_RANDOM) ? colorSet[rand() % 5] : color;
 
-	SetConsoleTextAttribute(handleConsole, colorValue);
+	SetConsoleTextAttribute(handleOutput, colorValue);
 
-	if (col >= 0 && row >= 0)
-		SetConsoleCursorPosition(handleConsole, (COORD) { col, row });
+	if (row >= 0 && col >= 0)
+		SetConsoleCursorPosition(handleOutput, (COORD) { col, row });
 
 	printf("%s", str);
 }
@@ -68,6 +67,7 @@ int hasMouseEvent(HWND handleWindow)
 	return 0;
 }
 
+
 int hasKeyboardEvent()
 {
 
@@ -76,10 +76,8 @@ int hasKeyboardEvent()
 
 int main()
 {
-	HANDLE inh;
-	inh = GetStdHandle(STD_INPUT_HANDLE);
+	int lockScreenTimeout = 300;
 
-	int lockScreenTimeout = 20;
 	int interval = lockScreenTimeout * 800;
 	int elapsedTime = 0;
 	clock_t prevTime = clock();
@@ -90,9 +88,9 @@ int main()
 	int disableLock = 1;
 	int showWindow = 1;
 	HWND handleWindow = GetConsoleWindow();
-	HANDLE handleConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	HANDLE handleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
 
-	SetConsoleCursorInfo(handleConsole, &(CONSOLE_CURSOR_INFO){ 100, FALSE });
+	SetConsoleCursorInfo(handleOutput, &(CONSOLE_CURSOR_INFO){ 100, FALSE });
 	ShowWindow(handleWindow, showWindow ? SW_SHOW : SW_HIDE);
 
 	srand((unsigned int)time(NULL));
@@ -101,7 +99,7 @@ int main()
 	{
 		int isControlPressed = GetAsyncKeyState(VK_CONTROL);
 		int isShiftPressed = GetAsyncKeyState(VK_SHIFT);
-		
+
 		if (isControlPressed && isShiftPressed)
 		{
 			if (GetAsyncKeyState(VK_OEM_3))
@@ -133,7 +131,7 @@ int main()
 			{
 				static clock_t prevPressedTime = 0;
 
-				if (clock() - prevPressedTime > 500)
+				if (clock() - prevPressedTime > 250)
 				{
 					prevPressedTime = clock();
 
@@ -166,44 +164,44 @@ int main()
 		{
 			elapsedTime = clock() - prevTime;
 
-			if ((elapsedTime / (lockScreenTimeout * 1000) < 1))
-			{
-				int index = elapsedTime * ((int)sizeof(progressBar) - 1) / (lockScreenTimeout * 1000);
+			if (elapsedTime >= lockScreenTimeout * 1000)
+				elapsedTime = lockScreenTimeout * 1000;
 
-				if (progressBar[index] == '.')
-					progressBar[index] = '#';
-			}
+			int index = elapsedTime * ((int)sizeof(progressBar) - 1) / (lockScreenTimeout * 1000);
+
+			if (index < sizeof(progressBar) - 1)
+				progressBar[index] = '#';
 		}
 
-		draw(handleConsole, "Commands:", 1, 1, COLOR_YELLOW);
+		draw(handleOutput, "Commands:", 1, 1, COLOR_YELLOW);
 
-		draw(handleConsole, "Exit Program", 3, 5, COLOR_WHITE);
-		draw(handleConsole, "Ctrl", 3, 29, GetAsyncKeyState(VK_CONTROL) ? COLOR_LIGHTCYAN : COLOR_DARKGRAY);
-		draw(handleConsole, "Shift", 3, 35, GetAsyncKeyState(VK_SHIFT) ? COLOR_LIGHTCYAN : COLOR_DARKGRAY);
-		draw(handleConsole, "`", 3, 42, GetAsyncKeyState(VK_OEM_3) ? COLOR_LIGHTCYAN : COLOR_DARKGRAY);
+		draw(handleOutput, "Exit Program", 3, 5, COLOR_WHITE);
+		draw(handleOutput, "Ctrl", 3, 29, GetAsyncKeyState(VK_CONTROL) ? COLOR_LIGHTCYAN : COLOR_DARKGRAY);
+		draw(handleOutput, "Shift", 3, 35, GetAsyncKeyState(VK_SHIFT) ? COLOR_LIGHTCYAN : COLOR_DARKGRAY);
+		draw(handleOutput, "`", 3, 42, GetAsyncKeyState(VK_OEM_3) ? COLOR_LIGHTCYAN : COLOR_DARKGRAY);
 
-		draw(handleConsole, "Enable / Disable Lock", 5, 5, COLOR_WHITE);
-		draw(handleConsole, "Ctrl", 5, 29, GetAsyncKeyState(VK_CONTROL) ? COLOR_LIGHTCYAN : COLOR_DARKGRAY);
-		draw(handleConsole, "Shift", 5, 35, GetAsyncKeyState(VK_SHIFT) ? COLOR_LIGHTCYAN : COLOR_DARKGRAY);
-		draw(handleConsole, "1", 5, 42, GetAsyncKeyState('1') ? COLOR_LIGHTCYAN : COLOR_DARKGRAY);
+		draw(handleOutput, "Enable / Disable Lock", 5, 5, COLOR_WHITE);
+		draw(handleOutput, "Ctrl", 5, 29, GetAsyncKeyState(VK_CONTROL) ? COLOR_LIGHTCYAN : COLOR_DARKGRAY);
+		draw(handleOutput, "Shift", 5, 35, GetAsyncKeyState(VK_SHIFT) ? COLOR_LIGHTCYAN : COLOR_DARKGRAY);
+		draw(handleOutput, "1", 5, 42, GetAsyncKeyState('1') ? COLOR_LIGHTCYAN : COLOR_DARKGRAY);
 
-		draw(handleConsole, "Show / Hide Window", 7, 5, COLOR_WHITE);
-		draw(handleConsole, "Ctrl", 7, 29, GetAsyncKeyState(VK_CONTROL) ? COLOR_LIGHTCYAN : COLOR_DARKGRAY);
-		draw(handleConsole, "Shift", 7, 35, GetAsyncKeyState(VK_SHIFT) ? COLOR_LIGHTCYAN : COLOR_DARKGRAY);
-		draw(handleConsole, "2", 7, 42, GetAsyncKeyState('2') ? COLOR_LIGHTCYAN : COLOR_DARKGRAY);
+		draw(handleOutput, "Show / Hide Window", 7, 5, COLOR_WHITE);
+		draw(handleOutput, "Ctrl", 7, 29, GetAsyncKeyState(VK_CONTROL) ? COLOR_LIGHTCYAN : COLOR_DARKGRAY);
+		draw(handleOutput, "Shift", 7, 35, GetAsyncKeyState(VK_SHIFT) ? COLOR_LIGHTCYAN : COLOR_DARKGRAY);
+		draw(handleOutput, "2", 7, 42, GetAsyncKeyState('2') ? COLOR_LIGHTCYAN : COLOR_DARKGRAY);
 
-		draw(handleConsole, "Status:", 10, 1, COLOR_YELLOW);
+		draw(handleOutput, "Status:", 10, 1, COLOR_YELLOW);
 
 		sprintf(buffer, "%-15s", disableLock ? "Disable Lock" : "Enable Lock");
-		draw(handleConsole, buffer, 12, 5, disableLock ? COLOR_WHITE : COLOR_DARKGRAY);
+		draw(handleOutput, buffer, 12, 5, disableLock ? COLOR_WHITE : COLOR_DARKGRAY);
 		sprintf(buffer, "%3d / %d (sec)", elapsedTime / 1000, lockScreenTimeout);
-		draw(handleConsole, buffer, 12, 28, disableLock ? COLOR_WHITE : COLOR_DARKGRAY);
-		draw(handleConsole, progressBar + 1, 13, 5, disableLock ? COLOR_WHITE : COLOR_DARKGRAY);
+		draw(handleOutput, buffer, 12, 28, disableLock ? COLOR_WHITE : COLOR_DARKGRAY);
+		draw(handleOutput, progressBar + 1, 13, 5, disableLock ? COLOR_WHITE : COLOR_DARKGRAY);
 
 		Sleep(100);
 	}
 
-	SetConsoleTextAttribute(handleConsole, COLOR_DEFAULT);
+	SetConsoleTextAttribute(handleOutput, COLOR_DEFAULT);
 
 	return 0;
 }
